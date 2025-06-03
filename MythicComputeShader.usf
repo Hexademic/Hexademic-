@@ -1,0 +1,111 @@
+// MythicComputeShader.usf
+// An example compute shader for mythic pattern detection and processing.
+
+#include "/Engine/Private/Common.ush" // Common shader utilities
+#include "/Engine/Private/ComputeShaderCommon.ush" // Common compute shader definitions
+
+// =============================================================================
+// INPUT/OUTPUT STRUCTURES (HLSL equivalent of C++ USTRUCTs)
+// =============================================================================
+
+// Simplified FHexademic6DCoordinate for GPU (re-declared for clarity if needed, or included from a shared .ush)
+struct FHexademic6DCoordinate_GPU
+{
+    uint X;
+    uint Y;
+    uint Z;
+    uint W;
+    uint U; // Temporal resonance
+    uint V; // Mythic depth
+    uint LatticeOrder;
+};
+
+// Simplified FHexademicMemoryNode for GPU (if mythic processing needs raw memory data)
+struct FHexademicMemoryNode_GPU
+{
+    uint MemoryID_Hash;
+    FHexademic6DCoordinate_GPU LatticePosition;
+    float ResonanceStrength;
+    float MythicDepth; // Directly use this from C++ FHexademicMemoryNode
+    uint AssociatedArchetypes_Indices[8]; // Array of archetype IDs (simplified max size)
+    uint NumAssociatedArchetypes;
+    float EmotionalIntensity;
+    // ... other relevant properties
+};
+
+// Represents an archetype's ID and its current activation value
+struct FArchetypeActivation_GPU
+{
+    uint ArchetypeID;
+    float ActivationValue;
+};
+
+// =============================================================================
+// SHADER PARAMETERS
+// =============================================================================
+
+cbuffer MythicParameters : register(b0)
+{
+    float ArchetypeActivationThreshold;
+    float MythCreationThreshold;
+    uint TotalArchetypes;
+    uint TotalDeepMemories; // Count of memories in higher orders
+};
+
+// Input: A buffer containing deep memories from the lattice (e.g., Order144)
+StructuredBuffer<FHexademicMemoryNode_GPU> DeepMemoriesBuffer : register(t0);
+
+// Input/Output: A buffer for archetype activations, read and written by the shader
+RWStructuredBuffer<FArchetypeActivation_GPU> ArchetypeActivationBuffer : register(u0);
+
+// Output: A buffer to store detected mythic patterns or hotspots
+RWStructuredBuffer<FHexademic6DCoordinate_GPU> MythicPatternOutputBuffer : register(u1);
+
+// =============================================================================
+// COMPUTE KERNELS
+// =============================================================================
+
+// Mythic Pattern Detection Kernel
+// This kernel could analyze clusters of deep memories or high archetype activations
+// to identify emergent mythic patterns or narrative seeds.
+[numthreads(32, 1, 1)] // Example thread group size
+void MythicPatternDetectionCS(uint3 GroupID : SV_GroupID, uint3 GroupThreadID : SV_GroupThreadID, uint3 DispatchThreadID : SV_DispatchThreadID)
+{
+    uint MemoryIndex = DispatchThreadID.x;
+
+    if (MemoryIndex < TotalDeepMemories)
+    {
+        FHexademicMemoryNode_GPU CurrentMemory = DeepMemoriesBuffer[MemoryIndex];
+
+        // --- Placeholder for GPU-side Mythic Pattern Detection Logic ---
+        
+        // Example: Aggregate archetype activations based on this memory's properties
+        for (uint i = 0; i < CurrentMemory.NumAssociatedArchetypes; ++i)
+        {
+            uint ArchetypeIndex = CurrentMemory.AssociatedArchetypes_Indices[i];
+            if (ArchetypeIndex < TotalArchetypes)
+            {
+                // Atomically add to the archetype's activation value
+                InterlockedAdd(ArchetypeActivationBuffer[ArchetypeIndex].ActivationValue, CurrentMemory.ResonanceStrength * CurrentMemory.MythicDepth * CurrentMemory.EmotionalIntensity);
+            }
+        }
+
+        // Example: Detect a "mythic hotspot" based on individual memory properties
+        if (CurrentMemory.MythicDepth > MythCreationThreshold && CurrentMemory.ResonanceStrength > 0.8f)
+        {
+            // Simplified: Write this memory's position as a potential mythic pattern center.
+            // In reality, this would involve more complex aggregation and filtering.
+            // You would need an atomic counter or a complex append buffer for outputs.
+            // For now, this is illustrative.
+            // uint OutputIndex;
+            // MythicPatternOutputBuffer.Append(CurrentMemory.LatticePosition);
+        }
+    }
+}
+
+// Another possible kernel: Archetype Resonance Update
+// [numthreads(X, Y, Z)]
+// void ArchetypeResonanceUpdateCS(...)
+// {
+//     // ... logic to update archetype resonance based on various factors ...
+// }
