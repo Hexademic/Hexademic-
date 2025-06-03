@@ -1,469 +1,201 @@
-// Hexademic6CognitiveLattice.cpp
-// This file implements the concrete FHexademic6CognitiveLattice class.
+// HexademicSixLattice.cpp
+// Modified to integrate DUIDS, updated ECognitiveLatticeOrder, and int32 coordinates.
 
 #include "HexademicSixLattice.h"
 #include "Misc/Guid.h"
 #include "Math/UnrealMathUtility.h"
 #include "HAL/PlatformTime.h"
 #include "Logging/LogMacros.h"
-#include "Containers/Array.h"
 #include "Containers/Map.h"
-#include "CoreMinimal.h" // For UE_LOG and other core types
-#include "Misc/Optional.h" // For TOptional
+#include "Containers/Array.h"
 
-// Define a log category for Hexademic Lattice operations
-// (This is defined in HexademicSixLattice.cpp as well; ensure no redefinition issues in build system)
+// Define a log category for Hexademic Lattice operations (if not already defined in Hexademic6Module.cpp)
 // DEFINE_LOG_CATEGORY_STATIC(LogHexademicLattice, Log, All);
 
-// Forward declarations for placeholder services
-// In a full implementation, these would be proper concrete classes defined elsewhere.
-class FHexademic6ResonanceServicePlaceholder : public IHexademic6ResonanceService
-{
-public:
-    virtual void UpdateResonanceField(const TArray<FHexademicMemoryNode>& ActiveMemories) override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: UpdateResonanceField called.")); }
-    virtual float SampleResonanceAt(const FHexademic6DCoordinate& Position) const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: SampleResonanceAt called.")); return 0.5f; }
-    // Omitting GetResonanceGradient due to FVector6 being an undefined type in this context.
-    // virtual FVector6 GetResonanceGradient(const FHexademic6DCoordinate& Position) const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: GetResonanceGradient called.")); return FVector6(); }
-    virtual float CalculateCrossDimensionalResonance() const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: CalculateCrossDimensionalResonance called.")); return 0.0f; }
-    virtual TArray<FHexademic6DCoordinate> GetResonanceHotspots(ECognitiveLatticeOrder Order) const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: GetResonanceHotspots called.")); return TArray<FHexademic6DCoordinate>(); }
-    virtual void PropagateResonanceWave(const FHexademic6DCoordinate& Origin, float Amplitude) override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: PropagateResonanceWave called.")); }
-    virtual float GetGlobalCoherence() const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: GetGlobalCoherence called.")); return 0.0f; }
-    virtual float GetOrderCoherence(ECognitiveLatticeOrder Order) const override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: GetOrderCoherence called.")); return 0.0f; }
-    virtual void SubscribeToCoherenceUpdates(TFunction<void(float)> Callback) override { UE_LOG(LogHexademicLattice, Log, TEXT("ResonanceService Placeholder: SubscribeToCoherenceUpdates called.")); }
-};
-
-class FHexademic6MythicServicePlaceholder : public IHexademic6MythicService
-{
-public:
-    virtual void ProcessMythicEmergence(const TArray<FHexademicMemoryNode>& DeepMemories) override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: ProcessMythicEmergence called.")); }
-    virtual TArray<FString> ExtractNarrativeThreads(ECognitiveLatticeOrder MinOrder = ECognitiveLatticeOrder::Order72) override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: ExtractNarrativeThreads called.")); return TArray<FString>(); }
-    virtual void RecordCollectiveResonance(const FHexademic6DCoordinate& MythicCenter, float Intensity) override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: RecordCollectiveResonance called.")); }
-    virtual void UpdateArchetypeActivations(const TMap<uint32, float>& Activations) override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: UpdateArchetypeActivations called.")); }
-    virtual TArray<uint32> GetActiveArchetypes(float MinActivation = 0.5f) const override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: GetActiveArchetypes called.")); return TArray<uint32>(); }
-    virtual float GetArchetypeResonance(uint32 ArchetypeID) const override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: GetArchetypeResonance called.")); return 0.0f; }
-    virtual void TriggerTranscendentExperience(const FHexademic6DCoordinate& FocalPoint) override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: TriggerTranscendentExperience called.")); }
-    virtual bool IsInTranscendentState() const override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: IsInTranscendentState called.")); return false; }
-    virtual float GetTranscendenceLevel() const override { UE_LOG(LogHexademicLattice, Log, TEXT("MythicService Placeholder: GetTranscendenceLevel called.")); return 0.0f; }
-};
-
 // =============================================================================
-// FHexademic6CognitiveLattice Implementation
+// FHexademic6DCoordinate Implementations
 // =============================================================================
 
-FHexademic6CognitiveLattice::FHexademic6CognitiveLattice()
+void FHexademic6DCoordinate::GenerateFromArchetype(uint32 ArchetypeID, float EmotionalIntensity)
 {
-    InitializeOrderCapacities();
-    UE_LOG(LogHexademicLattice, Log, TEXT("FHexademic6CognitiveLattice constructed."));
+    // Placeholder: Generate coordinates based on ArchetypeID and EmotionalIntensity.
+    // Coordinates are now int32, offering higher precision.
+    X = FMath::RandRange(-8388607, 8388607); // ~24-bit range
+    Y = FMath::RandRange(-8388607, 8388607);
+    Z = FMath::RandRange(-8388607, 8388607);
+    W = FMath::RoundToInt(EmotionalIntensity * 16777215.0f); // Scale intensity to 24-bit range
+    U = FMath::RandRange(-8388607, 8388607); // Temporal
+    V = FMath::RandRange(-8388607, 8388607); // Mythic
+
+    // LatticeOrder would typically be determined by the context of the generation
+    LatticeOrder = ECognitiveLatticeOrder::Order6; // Initial order
+    
+    // Update DUIDS index after coordinate generation
+    UpdateDUIDSIndex();
+
+    UE_LOG(LogHexademicLattice, Verbose, TEXT("Generated 6D coordinate for ArchetypeID %d: X=%d, Y=%d, Z=%d, W=%d, U=%d, V=%d, DUIDS: %s"), 
+        ArchetypeID, X, Y, Z, W, U, V, *DUIDSLocation.ToDecimalString());
 }
 
-FHexademic6CognitiveLattice::~FHexademic6CognitiveLattice()
+bool FHexademic6DCoordinate::IsValidForOrder(ECognitiveLatticeOrder Order) const
 {
-    UE_LOG(LogHexademicLattice, Log, TEXT("FHexademic6CognitiveLattice destructed."));
-}
+    // Check if the coordinate values are within the conceptual bounds of the given order.
+    // The 'OrderSize' now corresponds to the fractal folding structure.
+    static const int32 OrderSizes[] = { 6, 12, 24, 48, 96, 192, TNumericLimits<int32>::Max() };
+    const int32 OrderSize = OrderSizes[static_cast<uint8>(Order)];
 
-void FHexademic6CognitiveLattice::InitializeOrderCapacities()
-{
-    // Define the maximum number of memories each lattice order can hold.
-    // These are example values, potentially based on N^6 where N is OrderSize.
-    OrderCapacities.Add(ECognitiveLatticeOrder::Order12, 12 * 12 * 12 * 12 * 12 * 12);
-    OrderCapacities.Add(ECognitiveLatticeOrder::Order18, 18 * 18 * 18 * 18 * 18 * 18);
-    OrderCapacities.Add(ECognitiveLatticeOrder::Order36, 36 * 36 * 36 * 36 * 36 * 36);
-    OrderCapacities.Add(ECognitiveLatticeOrder::Order72, 72 * 72 * 72 * 72 * 72 * 72);
-    OrderCapacities.Add(ECognitiveLatticeOrder::Order144, 144 * 144 * 144 * 144 * 144 * 144);
-    OrderCapacities.Add(ECognitiveLatticeOrder::OrderInfinite, TNumericLimits<int32>::Max()); // Represents effectively unbounded
-}
-
-void FHexademic6CognitiveLattice::StoreMemory(const FHexademicMemoryNode& Memory)
-{
-    // Stores a memory node within the appropriate lattice order.
-    TArray<FHexademicMemoryNode>& MemoriesInOrder = LatticeOrders.FindOrAdd(Memory.LatticePosition.LatticeOrder);
-    // Check capacity if needed: if (MemoriesInOrder.Num() < OrderCapacities[Memory.LatticePosition.LatticeOrder])
-    MemoriesInOrder.Add(Memory);
-    MemoryToOrderMap.Add(Memory.MemoryID, Memory.LatticePosition.LatticeOrder);
-    UpdateResonanceConnections(Memory.MemoryID);
-    UE_LOG(LogHexademicLattice, Log, TEXT("Stored memory: %s in Order %d."), *Memory.MemoryID.ToString(), (uint8)Memory.LatticePosition.LatticeOrder);
-}
-
-TOptional<FHexademicMemoryNode> FHexademic6CognitiveLattice::RetrieveMemory(const FGuid& MemoryID)
-{
-    // Retrieves a memory node by its unique ID.
-    if (ECognitiveLatticeOrder* OrderPtr = MemoryToOrderMap.Find(MemoryID))
+    // For OrderInfinite, the max value is effectively unbounded for int32.
+    // For specific orders, check if coordinates are within the expected 'ring' size.
+    // This is a conceptual check, actual bounds might be relative to a center.
+    if (Order == ECognitiveLatticeOrder::OrderInfinite)
     {
-        if (TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(*OrderPtr))
+        return true; // Unbounded
+    }
+    // Simple check: are absolute values within the OrderSize
+    return (FMath::Abs(X) < OrderSize && FMath::Abs(Y) < OrderSize && FMath::Abs(Z) < OrderSize && 
+            FMath::Abs(W) < OrderSize && FMath::Abs(U) < OrderSize && FMath::Abs(V) < OrderSize);
+}
+
+// NOTE: ToLinearIndex is now FORCEINLINE in the header. Its implementation was moved there.
+
+void FHexademic6DCoordinate::FromLinearIndex(uint64 Index, ECognitiveLatticeOrder Order)
+{
+    // Placeholder: Convert linear index back to 6D coordinate based on the order.
+    // This method needs to align with the ToLinearIndex logic which might use DUIDS.
+    // If ToLinearIndex prioritizes DUIDS, FromLinearIndex might need a DUIDS-based conversion.
+    // For now, it's a direct inverse of the non-DUIDS linear conversion.
+    static const uint32 OrderSizes[] = { 6, 12, 24, 48, 96, 192, 65536 }; // 65536 for OrderInfinite to cap uint16 range for V
+    const uint32 OrderSize = OrderSizes[static_cast<uint8>(Order)];
+
+    LatticeOrder = Order;
+    if (OrderSize == 0) return;
+
+    // This inverse calculation needs to match the ToLinearIndex logic.
+    // If ToLinearIndex uses DUIDS for a "fast path", this FromLinearIndex needs to handle that.
+    // For now, assuming direct 6D mapping for fallback.
+    uint64 CurrentIndex = Index;
+    V = (int32)(CurrentIndex / FMath::Pow(OrderSize, 5));
+    CurrentIndex %= (uint64)FMath::Pow(OrderSize, 5);
+    U = (int32)(CurrentIndex / FMath::Pow(OrderSize, 4));
+    CurrentIndex %= (uint64)FMath::Pow(OrderSize, 4);
+    W = (int32)(CurrentIndex / FMath::Pow(OrderSize, 3));
+    CurrentIndex %= (uint64)FMath::Pow(OrderSize, 3);
+    Z = (int32)(CurrentIndex / FMath::Pow(OrderSize, 2));
+    CurrentIndex %= (uint64)FMath::Pow(OrderSize, 2);
+    Y = (int32)(CurrentIndex / OrderSize);
+    X = (int32)(CurrentIndex % OrderSize);
+
+    // After setting coordinates, update DUIDS index
+    UpdateDUIDSIndex();
+
+    UE_LOG(LogHexademicLattice, Verbose, TEXT("Converted linear index %llu to 6D coordinate for order %d: X=%d, Y=%d, Z=%d, W=%d, U=%d, V=%d, DUIDS: %s"), 
+        Index, (uint8)Order, X, Y, Z, W, U, V, *DUIDSLocation.ToDecimalString());
+}
+
+FHexademic6DCoordinate FHexademic6DCoordinate::ProjectToOrder(ECognitiveLatticeOrder TargetOrder) const
+{
+    // Projects the current 6D coordinate to a different lattice order.
+    // This would involve scaling or remapping coordinates based on the new order's size.
+    static const int32 CurrentOrderSizes[] = { 6, 12, 24, 48, 96, 192, TNumericLimits<int32>::Max() };
+    static const int32 TargetOrderSizes[] = { 6, 12, 24, 48, 96, 192, TNumericLimits<int32>::Max() };
+
+    FHexademic6DCoordinate ProjectedCoord = *this;
+    ProjectedCoord.LatticeOrder = TargetOrder;
+
+    if (LatticeOrder != TargetOrder)
+    {
+        float CurrentSize = (LatticeOrder == ECognitiveLatticeOrder::OrderInfinite) ? 65536.0f : CurrentOrderSizes[static_cast<uint8>(LatticeOrder)];
+        float TargetSize = (TargetOrder == ECognitiveLatticeOrder::OrderInfinite) ? 65536.0f : TargetOrderSizes[static_cast<uint8>(TargetOrder)];
+
+        if (CurrentSize > KINDA_SMALL_NUMBER)
         {
-            for (FHexademicMemoryNode& Memory : *MemoriesInOrder)
-            {
-                if (Memory.MemoryID == MemoryID)
-                {
-                    Memory.AccessCount++; // Increment access count on retrieval
-                    UE_LOG(LogHexademicLattice, Log, TEXT("Retrieved memory: %s from Order %d."), *MemoryID.ToString(), (uint8)*OrderPtr);
-                    return Memory;
-                }
-            }
+            float ScaleFactor = TargetSize / CurrentSize;
+            ProjectedCoord.X = FMath::RoundToInt(X * ScaleFactor);
+            ProjectedCoord.Y = FMath::RoundToInt(Y * ScaleFactor);
+            ProjectedCoord.Z = FMath::RoundToInt(Z * ScaleFactor);
+            ProjectedCoord.W = FMath::RoundToInt(W * ScaleFactor);
+            ProjectedCoord.U = FMath::RoundToInt(U * ScaleFactor);
+            ProjectedCoord.V = FMath::RoundToInt(V * ScaleFactor);
         }
     }
-    UE_LOG(LogHexademicLattice, Warning, TEXT("Memory %s not found."), *MemoryID.ToString());
-    return TOptional<FHexademicMemoryNode>();
+    // Update DUIDS index for the projected coordinate
+    ProjectedCoord.UpdateDUIDSIndex();
+
+    UE_LOG(LogHexademicLattice, Verbose, TEXT("Projected coordinate from Order %d to Order %d. New DUIDS: %s"), 
+        (uint8)LatticeOrder, (uint8)TargetOrder, *ProjectedCoord.DUIDSLocation.ToDecimalString());
+    return ProjectedCoord;
 }
 
-void FHexademic6CognitiveLattice::UpdateMemoryResonance(const FGuid& MemoryID, float NewResonance)
+FHexademic6DCoordinate FHexademic6DCoordinate::FromDUIDSIndex(const FDUIDSIndex& Index, ECognitiveLatticeOrder Order)
 {
-    // Updates the resonance strength of a specific memory.
-    if (ECognitiveLatticeOrder* OrderPtr = MemoryToOrderMap.Find(MemoryID))
+    FHexademic6DCoordinate Coord;
+    Coord.DUIDSLocation = Index;
+    Coord.LatticeOrder = Order;
+
+    // Placeholder: This is a critical mapping from DUIDS decimal index back to 6D coordinates.
+    // The exact mapping would depend on your compression/indexing scheme.
+    // For a simple example, we can derive coordinates directly from DUIDS components.
+    
+    // Example (simplistic direct mapping - assumes DUIDS components span coordinate ranges):
+    // Max values for coordinate components are from the 24-bit range
+    Coord.X = (int32)Index.MajorClass * 1000000 + (int32)Index.Division * 10000;
+    Coord.Y = (int32)Index.Division * 100000 + (int32)Index.Section * 100;
+    Coord.Z = (int32)Index.Section * 1000 + (int32)(Index.SubSection % 1000);
+    Coord.W = (int32)(Index.SubSection >> 16); // Extract higher bits for W
+    Coord.U = (int32)(Index.SubSection & 0xFFFF); // Extract lower bits for U
+    Coord.V = (int32)Index.Cutter * 100 + (int32)Index.Edition; // Combine Cutter and Edition for V
+
+    // Ensure values are within a reasonable range for the chosen order, e.g., scale them.
+    // This is a very rough example and needs careful tuning based on your actual DUIDS design.
+    static const int32 OrderSizes[] = { 6, 12, 24, 48, 96, 192, TNumericLimits<int32>::Max() };
+    const int32 OrderSize = OrderSizes[static_cast<uint8>(Order)];
+    if (Order != ECognitiveLatticeOrder::OrderInfinite && OrderSize > 0)
     {
-        if (TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(*OrderPtr))
-        {
-            for (FHexademicMemoryNode& Memory : *MemoriesInOrder)
-            {
-                if (Memory.MemoryID == MemoryID)
-                {
-                    Memory.ResonanceStrength = FMath::Clamp(NewResonance, 0.0f, 1.0f);
-                    UE_LOG(LogHexademicLattice, Log, TEXT("Updated resonance for memory %s to %f."), *MemoryID.ToString(), NewResonance);
-                    return;
-                }
-            }
-        }
+        float ScaleFactor = (float)OrderSize / 8388607.0f; // Scale to current order's typical range
+        Coord.X = FMath::RoundToInt(Coord.X * ScaleFactor);
+        Coord.Y = FMath::RoundToInt(Coord.Y * ScaleFactor);
+        Coord.Z = FMath::RoundToInt(Coord.Z * ScaleFactor);
+        Coord.W = FMath::RoundToInt(Coord.W * ScaleFactor);
+        Coord.U = FMath::RoundToInt(Coord.U * ScaleFactor);
+        Coord.V = FMath::RoundToInt(Coord.V * ScaleFactor);
     }
-    UE_LOG(LogHexademicLattice, Warning, TEXT("Could not update resonance for memory %s: not found."), *MemoryID.ToString());
+
+    UE_LOG(LogHexademicLattice, Verbose, TEXT("Converted DUIDS Index %s to 6D coordinate for Order %d: X=%d, Y=%d, Z=%d, W=%d, U=%d, V=%d"),
+        *Index.ToDecimalString(), (uint8)Order, Coord.X, Coord.Y, Coord.Z, Coord.W, Coord.U, Coord.V);
+    return Coord;
 }
 
-void FHexademic6CognitiveLattice::PromoteMemoryToOrder(const FGuid& MemoryID, ECognitiveLatticeOrder NewOrder)
+// NOTE: CalculateResonanceWith is now FORCEINLINE in the header.
+
+// =============================================================================
+// FHexademicMemoryNode Implementations
+// =============================================================================
+
+void FHexademicMemoryNode::UpdateResonanceFromNeighbors(const TArray<FHexademicMemoryNode>& Neighbors)
 {
-    // Migrates a memory from its current order to a new, specified order.
-    if (ECognitiveLatticeOrder* CurrentOrderPtr = MemoryToOrderMap.Find(MemoryID))
+    // Update resonance strength based on neighboring memories, now considering DUIDS proximity.
+    float TotalResonance = 0.0f;
+    int32 ValidNeighbors = 0;
+    for (const FHexademicMemoryNode& Neighbor : Neighbors)
     {
-        ECognitiveLatticeOrder CurrentOrder = *CurrentOrderPtr;
-        if (CurrentOrder != NewOrder)
-        {
-            MigrateMemoryBetweenOrders(MemoryID, CurrentOrder, NewOrder);
-            UE_LOG(LogHexademicLattice, Log, TEXT("Promoted memory %s from Order %d to Order %d."), *MemoryID.ToString(), (uint8)CurrentOrder, (uint8)NewOrder);
-        }
-        else
-        {
-            UE_LOG(LogHexademicLattice, Warning, TEXT("Memory %s is already in target Order %d."), *MemoryID.ToString(), (uint8)NewOrder);
-        }
+        // Use the DUIDS-aware CalculateResonanceWith
+        TotalResonance += LatticePosition.CalculateResonanceWith(Neighbor.LatticePosition);
+        ValidNeighbors++;
+    }
+
+    if (ValidNeighbors > 0)
+    {
+        ResonanceStrength = FMath::Clamp(TotalResonance / ValidNeighbors, 0.0f, 1.0f);
     }
     else
     {
-        UE_LOG(LogHexademicLattice, Warning, TEXT("Cannot promote memory %s: not found."), *MemoryID.ToString());
+        ResonanceStrength = 0.5f; // Default if no neighbors
     }
+    UE_LOG(LogHexademicLattice, Verbose, TEXT("Memory %s updated resonance from %d neighbors. New resonance: %f"), *MemoryID.ToString(), Neighbors.Num(), ResonanceStrength);
 }
 
-TArray<FHexademicMemoryNode> FHexademic6CognitiveLattice::GetMemoriesInOrder(ECognitiveLatticeOrder Order) const
-{
-    // Returns all memories currently residing within a specified cognitive lattice order.
-    if (const TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(Order))
-    {
-        UE_LOG(LogHexademicLattice, Log, TEXT("Retrieved %d memories from Order %d."), MemoriesInOrder->Num(), (uint8)Order);
-        return *MemoriesInOrder;
-    }
-    UE_LOG(LogHexademicLattice, Warning, TEXT("No memories found in Order %d."), (uint8)Order);
-    return TArray<FHexademicMemoryNode>();
-}
-
-TArray<FHexademicMemoryNode> FHexademic6CognitiveLattice::GetMemoriesNearCoordinate(const FHexademic6DCoordinate& Center, float Radius) const
-{
-    // Finds memories within a certain 'radius' (resonance threshold) of a given 6D coordinate.
-    TArray<FHexademicMemoryNode> ResultMemories;
-    if (const TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(Center.LatticeOrder))
-    {
-        for (const FHexademicMemoryNode& Memory : *MemoriesInOrder)
-        {
-            if (Memory.LatticePosition.CalculateResonanceWith(Center) >= (1.0f - Radius)) // Higher resonance = closer
-            {
-                ResultMemories.Add(Memory);
-            }
-        }
-    }
-    UE_LOG(LogHexademicLattice, Log, TEXT("Found %d memories near coordinate in Order %d with radius %f."), ResultMemories.Num(), (uint8)Center.LatticeOrder, Radius);
-    return ResultMemories;
-}
-
-TArray<FHexademicMemoryNode> FHexademic6CognitiveLattice::GetResonantMemories(const FGuid& SourceMemoryID, float MinResonance) const
-{
-    // Retrieves memories that are linked and resonate with a source memory.
-    TArray<FHexademicMemoryNode> ResonantMemories;
-    if (const TArray<FGuid>* Resonances = ResonanceGraph.Find(SourceMemoryID))
-    {
-        // Note: const_cast is used here to allow RetrieveMemory to increment AccessCount.
-        // In a true const method, a separate non-mutating retrieval would be preferred.
-        for (const FGuid& ResonantMemoryID : *Resonances)
-        {
-            if (TOptional<FHexademicMemoryNode> Memory = const_cast<FHexademic6CognitiveLattice*>(this)->RetrieveMemory(ResonantMemoryID))
-            {
-                if (Memory->ResonanceStrength >= MinResonance) 
-                {
-                     ResonantMemories.Add(Memory.GetValue());
-                }
-            }
-        }
-    }
-    UE_LOG(LogHexademicLattice, Log, TEXT("Found %d resonant memories for %s with min resonance %f."), ResonantMemories.Num(), *SourceMemoryID.ToString(), MinResonance);
-    return ResonantMemories;
-}
-
-TArray<FHexademic6DCoordinate> FHexademic6CognitiveLattice::DetectEmergentPatterns(ECognitiveLatticeOrder Order) const
-{
-    // Placeholder: This method would implement complex pattern detection algorithms.
-    // Examples include spatial clustering, temporal correlations, or archetypal signature matching.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Detecting emergent patterns in Order %d... (Placeholder)"), (uint8)Order);
-    TArray<FHexademic6DCoordinate> EmergentPatterns;
-    // Example: For demonstration, just return the coordinates of the first few memories.
-    if (const TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(Order))
-    {
-        for (int32 i = 0; i < FMath::Min(MemoriesInOrder->Num(), 3); ++i)
-        {
-            EmergentPatterns.Add(MemoriesInOrder->operator[](i).LatticePosition);
-        }
-    }
-    return EmergentPatterns;
-}
-
-float FHexademic6CognitiveLattice::CalculateOrderCoherence(ECognitiveLatticeOrder Order) const
-{
-    // Placeholder: Calculates a coherence metric for memories within a given order.
-    // This could involve average resonance, density, or structural integrity.
-    if (const TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(Order))
-    {
-        if (MemoriesInOrder->Num() == 0) return 0.0f;
-
-        float TotalResonance = 0.0f;
-        for (const FHexademicMemoryNode& Memory : *MemoriesInOrder)
-        {
-            TotalResonance += Memory.ResonanceStrength;
-        }
-        float Coherence = TotalResonance / MemoriesInOrder->Num();
-        UE_LOG(LogHexademicLattice, Log, TEXT("Calculated coherence for Order %d: %f."), (uint8)Order, Coherence);
-        return Coherence;
-    }
-    return 0.0f;
-}
-
-TArray<uint32> FHexademic6CognitiveLattice::GetMostActiveArchetypes(ECognitiveLatticeOrder Order) const
-{
-    // Identifies the archetypes most frequently associated with memories in a given order.
-    TMap<uint32, int32> ArchetypeCounts;
-    if (const TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(Order))
-    {
-        for (const FHexademicMemoryNode& Memory : *MemoriesInOrder)
-        {
-            for (uint32 ArchetypeID : Memory.AssociatedArchetypes)
-            {
-                ArchetypeCounts.FindOrAdd(ArchetypeID)++;
-            }
-        }
-    }
-
-    TArray<uint32> ActiveArchetypes;
-    // Simple logic: return archetypes that appear more than once
-    for (auto const& Pair : ArchetypeCounts)
-    {
-        if (Pair.Value > 1)
-        {
-            ActiveArchetypes.Add(Pair.Key);
-        }
-    }
-    UE_LOG(LogHexademicLattice, Log, TEXT("Found %d active archetypes in Order %d."), ActiveArchetypes.Num(), (uint8)Order);
-    return ActiveArchetypes;
-}
-
-void FHexademic6CognitiveLattice::TriggerLatticeResonance()
-{
-    // Initiates a system-wide resonance event. This would typically interact with a resonance service.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Triggering global lattice resonance... (Placeholder)"));
-    // Example: Call placeholder resonance service if registered
-    if (FHexademic6ServiceLocator::AreAllServicesRegistered())
-    {
-        FHexademic6ServiceLocator::GetResonanceService().UpdateResonanceField(TArray<FHexademicMemoryNode>()); // Pass relevant memories
-    }
-}
-
-void FHexademic6CognitiveLattice::ProcessMemoryMigration()
-{
-    // Iterates through all memories, evaluating if they should be promoted or demoted
-    // to different lattice orders based on their properties and then performs the migration.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Processing memory migration across orders..."));
-    TArray<TPair<FGuid, ECognitiveLatticeOrder>> MigrationsToPerform;
-
-    for (auto& Pair : LatticeOrders)
-    {
-        ECognitiveLatticeOrder CurrentOrder = Pair.Key;
-        TArray<FHexademicMemoryNode>& Memories = Pair.Value;
-
-        // Iterate backwards to safely remove elements during iteration
-        for (int32 i = Memories.Num() - 1; i >= 0; --i)
-        {
-            FHexademicMemoryNode& Memory = Memories[i];
-            ECognitiveLatticeOrder OptimalOrder = Memory.DetermineOptimalOrder();
-
-            if (OptimalOrder != CurrentOrder)
-            {
-                MigrationsToPerform.Add(TPair<FGuid, ECognitiveLatticeOrder>(Memory.MemoryID, OptimalOrder));
-                // Remove from current list, will be re-added to target order by PromoteMemoryToOrder
-                Memories.RemoveAt(i); 
-            }
-        }
-    }
-
-    // Execute all collected migrations
-    for (const TPair<FGuid, ECognitiveLatticeOrder>& Migration : MigrationsToPerform)
-    {
-        PromoteMemoryToOrder(Migration.Key, Migration.Value);
-    }
-}
-
-void FHexademic6CognitiveLattice::UpdateTemporalDecay(float DeltaTime)
-{
-    // Applies a decay factor to memories over time, affecting their temporal persistence and resonance.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Updating temporal decay for memories with DeltaTime: %f."), DeltaTime);
-    for (auto& Pair : LatticeOrders)
-    {
-        for (FHexademicMemoryNode& Memory : Pair.Value)
-        {
-            Memory.TemporalDecay = FMath::Min(1.0f, Memory.TemporalDecay + (DeltaTime * 0.01f)); // Example decay rate
-            Memory.ResonanceStrength = FMath::Max(0.0f, Memory.ResonanceStrength - (DeltaTime * 0.005f)); // Example resonance decay
-        }
-    }
-}
-
-void FHexademic6CognitiveLattice::EvolveConsciousness()
-{
-    // Triggers a consciousness evolution process, which could involve re-evaluating
-    // lattice structures, optimizing connections, or pruning dormant nodes.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Evolving consciousness... (Placeholder)"));
-    for (auto& Pair : LatticeOrders)
-    {
-        PerformOrderEvolution(Pair.Key);
-    }
-}
-
-float FHexademic6CognitiveLattice::GetLatticeComplexity() const
-{
-    // Calculates an overall complexity metric for the entire cognitive lattice.
-    // This is a simple metric combining total memories and resonance graph connections.
-    int32 TotalMemories = 0;
-    for (const auto& Pair : LatticeOrders)
-    {
-        TotalMemories += Pair.Value.Num();
-    }
-    float Complexity = (float)TotalMemories * 0.1f + ResonanceGraph.Num() * 0.01f;
-    UE_LOG(LogHexademicLattice, Log, TEXT("Calculated lattice complexity: %f."), Complexity);
-    return Complexity;
-}
-
-TMap<ECognitiveLatticeOrder, int32> FHexademic6CognitiveLattice::GetOrderPopulations() const
-{
-    // Returns a map showing the number of memories in each cognitive lattice order.
-    TMap<ECognitiveLatticeOrder, int32> Populations;
-    for (const auto& Pair : LatticeOrders)
-    {
-        Populations.Add(Pair.Key, Pair.Value.Num());
-    }
-    UE_LOG(LogHexademicLattice, Log, TEXT("Retrieved order populations."));
-    return Populations;
-}
-
-void FHexademic6CognitiveLattice::MigrateMemoryBetweenOrders(const FGuid& MemoryID, ECognitiveLatticeOrder FromOrder, ECognitiveLatticeOrder ToOrder)
-{
-    // Internal helper function to move a memory node from one order to another.
-    if (TArray<FHexademicMemoryNode>* SourceMemories = LatticeOrders.Find(FromOrder))
-    {
-        int32 FoundIndex = INDEX_NONE;
-        FHexademicMemoryNode MigratingMemory;
-        for (int32 i = 0; i < SourceMemories->Num(); ++i)
-        {
-            if (SourceMemories->operator[](i).MemoryID == MemoryID)
-            {
-                MigratingMemory = SourceMemories->operator[](i);
-                FoundIndex = i;
-                break;
-            }
-        }
-
-        if (FoundIndex != INDEX_NONE)
-        {
-            SourceMemories->RemoveAt(FoundIndex);
-            
-            // Update the memory's internal lattice order property
-            MigratingMemory.LatticePosition.LatticeOrder = ToOrder;
-
-            // Add to target order's memory list
-            TArray<FHexademicMemoryNode>& TargetMemories = LatticeOrders.FindOrAdd(ToOrder);
-            TargetMemories.Add(MigratingMemory);
-            MemoryToOrderMap.Add(MemoryID, ToOrder); // Update the quick lookup map
-            UE_LOG(LogHexademicLattice, Log, TEXT("Memory %s migrated internally from Order %d to Order %d."), *MemoryID.ToString(), (uint8)FromOrder, (uint8)ToOrder);
-        }
-        else
-        {
-            UE_LOG(LogHexademicLattice, Warning, TEXT("Memory %s not found in source Order %d for migration."), *MemoryID.ToString(), (uint8)FromOrder);
-        }
-    }
-    else
-    {
-        UE_LOG(LogHexademicLattice, Warning, TEXT("Source Order %d not found for memory migration."), (uint8)FromOrder);
-    }
-}
-
-void FHexademic6CognitiveLattice::UpdateResonanceConnections(const FGuid& MemoryID)
-{
-    // Placeholder: Updates the internal resonance graph for a given memory.
-    // This would involve finding nearby or related memories and establishing bidirectional links.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Updating resonance connections for memory %s (Placeholder)"), *MemoryID.ToString());
-    // Example: Connect to a few random memories in the same order
-    if (ECognitiveLatticeOrder* OrderPtr = MemoryToOrderMap.Find(MemoryID))
-    {
-        if (TArray<FHexademicMemoryNode>* MemoriesInOrder = LatticeOrders.Find(*OrderPtr))
-        {
-            TArray<FGuid>& ConnectedMemories = ResonanceGraph.FindOrAdd(MemoryID);
-            for (int i = 0; i < FMath::Min(MemoriesInOrder->Num(), 5); ++i) // Connect to up to 5 memories
-            {
-                if (MemoriesInOrder->IsValidIndex(i) && MemoriesInOrder->operator[](i).MemoryID != MemoryID)
-                {
-                    ConnectedMemories.AddUnique(MemoriesInOrder->operator[](i).MemoryID);
-                    // Also establish bidirectional link
-                    ResonanceGraph.FindOrAdd(MemoriesInOrder->operator[](i).MemoryID).AddUnique(MemoryID);
-                }
-            }
-        }
-    }
-}
-
-void FHexademic6CognitiveLattice::PerformOrderEvolution(ECognitiveLatticeOrder Order)
-{
-    // Placeholder: Implements evolutionary processes specific to a lattice order.
-    // This could involve re-balancing memories, optimizing connections, or pruning dormant nodes.
-    UE_LOG(LogHexademicLattice, Log, TEXT("Performing evolution for Order %d... (Placeholder)"), (uint8)Order);
-    // Example: remove memories that should decay out of this order
-    if (TArray<FHexademicMemoryNode>* Memories = LatticeOrders.Find(Order))
-    {
-        for (int32 i = Memories->Num() - 1; i >= 0; --i)
-        {
-            if (ShouldDemoteMemory(Memories->operator[](i)))
-            {
-                UE_LOG(LogHexademicLattice, Log, TEXT("Memory %s decaying out of Order %d during evolution."), *Memories->operator[](i).MemoryID.ToString(), (uint8)Order);
-                // In a real system, you might migrate it to a lower order instead of just removing.
-                Memories->RemoveAt(i);
-                MemoryToOrderMap.Remove(Memories->operator[](i).MemoryID); // Update map
-            }
-        }
-    }
-}
-
-float FHexademic6CognitiveLattice::CalculateMemoryComplexity(const FHexademicMemoryNode& Memory) const
-{
-    // Placeholder: Calculates a complexity score for a single memory.
-    // This could be based on event data length, number of associated archetypes, or access patterns.
-    return (float)Memory.EventData.Len() * 0.01f + Memory.AssociatedArchetypes.Num() * 0.05f + Memory.AccessCount * 0.02f;
-}
-
-bool FHexademic6CognitiveLattice::ShouldPromoteMemory(const FHexademicMemoryNode& Memory) const
-{
-    // Uses the inline method defined in FHexademicMemoryNode for promotion criteria.
-    return Memory.ShouldPromoteToHigherOrder();
-}
-
-bool FHexademic6CognitiveLattice::ShouldDemoteMemory(const FHexademicMemoryNode& Memory) const
-{
-    // Uses the inline method defined in FHexademicMemoryNode for demotion criteria.
-    return Memory.ShouldDecayToLowerOrder();
-}
+// NOTE: ShouldPromoteToHigherOrder is now FORCEINLINE in the header.
+// NOTE: ShouldDecayToLowerOrder is now FORCEINLINE in the header (no changes needed beyond DUIDS logic in header).
+// NOTE: DetermineOptimalOrder is now FORCEINLINE in the header.
+// NOTE: CompressForStorage is now FORCEINLINE in the header.
+// NOTE: DecompressForAccess is now FORCEINLINE in the header.
