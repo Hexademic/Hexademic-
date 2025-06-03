@@ -1,0 +1,98 @@
+// LatticeComputeShader.usf
+// An example compute shader for processing the Hexademic Lattice.
+
+#include "/Engine/Private/Common.ush" // Common shader utilities
+#include "/Engine/Private/ComputeShaderCommon.ush" // Common compute shader definitions
+
+// =============================================================================
+// INPUT/OUTPUT STRUCTURES (HLSL equivalent of C++ USTRUCTs)
+// =============================================================================
+
+// Simplified version of FHexademic6DCoordinate for GPU
+struct FHexademic6DCoordinate_GPU
+{
+    uint X;
+    uint Y;
+    uint Z;
+    uint W;
+    uint U; // Temporal resonance
+    uint V; // Mythic depth
+    uint LatticeOrder; // Corresponds to ECognitiveLatticeOrder
+};
+
+// Simplified version of FHexademicMemoryNode for GPU processing
+struct FHexademicMemoryNode_GPU
+{
+    // GUIDs are complex on GPU, often passed as a linear index or hash
+    uint MemoryID_Hash; // Simplified: Use a hash or part of the GUID
+    FHexademic6DCoordinate_GPU LatticePosition;
+    float TemporalDecay;
+    float ResonanceStrength;
+    uint AccessCount;
+    float CognitiveWeight;
+    // Add other relevant properties needed for GPU computation
+};
+
+// =============================================================================
+// SHADER PARAMETERS (CB - Constant Buffer or SRV/UAV for resources)
+// =============================================================================
+
+// Example: Constant buffer for parameters passed from CPU
+cbuffer PerFrameParameters : register(b0)
+{
+    float DeltaTime;
+    float GlobalResonanceFactor;
+    uint TotalMemoryNodes;
+};
+
+// Input Structured Buffer (SRV - Shader Resource View)
+// This buffer would contain the memory nodes from your CPU-side lattice.
+StructuredBuffer<FHexademicMemoryNode_GPU> InMemoryNodes : register(t0);
+
+// Output Structured Buffer (UAV - Unordered Access View)
+// This buffer would be where the compute shader writes its results back.
+RWStructuredBuffer<FHexademicMemoryNode_GPU> OutMemoryNodes : register(u0);
+
+// Example: A buffer for a global resonance field that the shader can sample or update
+RWStructuredBuffer<float> ResonanceField : register(u1);
+
+// =============================================================================
+// COMPUTE KERNELS
+// =============================================================================
+
+// Lattice Evolution Kernel
+// This kernel might perform tasks like updating temporal decay,
+// re-calculating resonance, or flagging memories for migration.
+[numthreads(64, 1, 1)] // Define the thread group size (e.g., 64 threads per group in X dimension)
+void MainCS(uint3 GroupID : SV_GroupID, uint3 GroupThreadID : SV_GroupThreadID, uint3 DispatchThreadID : SV_DispatchThreadID)
+{
+    // Calculate the linear index of the current memory node this thread is responsible for.
+    // DispatchThreadID contains the unique linear index across all dispatched threads.
+    uint NodeIndex = DispatchThreadID.x;
+
+    if (NodeIndex < TotalMemoryNodes)
+    {
+        // Read input memory node
+        FHexademicMemoryNode_GPU Node = InMemoryNodes[NodeIndex];
+
+        // --- Placeholder for GPU-side Lattice Evolution Logic ---
+        // Example: Apply temporal decay
+        Node.TemporalDecay = min(1.0f, Node.TemporalDecay + (DeltaTime * 0.01f));
+        Node.ResonanceStrength = max(0.0f, Node.ResonanceStrength - (DeltaTime * 0.005f));
+
+        // Example: Update a simple resonance field based on the node's position (simplified)
+        // This would be much more complex involving 6D hashing or spatial partitioning
+        uint ResonanceFieldIndex = (Node.LatticePosition.X + Node.LatticePosition.Y * 10 + Node.LatticePosition.Z * 100);
+        ResonanceField[ResonanceFieldIndex % 1024] = Node.ResonanceStrength * GlobalResonanceFactor;
+
+        // Write updated node to output buffer
+        OutMemoryNodes[NodeIndex] = Node;
+    }
+}
+
+// You could define other kernels here, e.g., for Resonance Field update, Pattern Detection, etc.
+// [numthreads(X, Y, Z)]
+// void AnotherKernelCS(...)
+// {
+//    // ...
+// }
