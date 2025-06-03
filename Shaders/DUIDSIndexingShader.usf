@@ -1,0 +1,83 @@
+// DUIDSIndexingShader.usf
+// A compute shader for parallel generation of DUIDS indices from 6D coordinates.
+
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/ComputeShaderCommon.ush"
+
+// =============================================================================
+// INPUT/OUTPUT STRUCTURES (HLSL equivalent of C++ USTRUCTs)
+// =============================================================================
+
+// Matches FHexademic6DCoordinate_GPU in LatticeComputeShader.usf for consistency
+struct FHexademic6DCoordinate_GPU
+{
+    uint X; // Now using uint directly for 24-bit integer values on GPU (conceptual)
+    uint Y;
+    uint Z;
+    uint W;
+    uint U;
+    uint V;
+    uint LatticeOrder; // Matches ECognitiveLatticeOrder
+};
+
+// HLSL equivalent of FDUIDSIndex
+struct FDUIDSIndex_GPU
+{
+    uint MajorClass;  // 0-9
+    uint Division;    // 00-99
+    uint Section;     // 000-999
+    uint SubSection;  // Up to 0xFFFFFF (24 bits)
+    uint Cutter;      // 0-65535 (uint16)
+    uint Edition;     // 0-255 (uint8)
+};
+
+// =============================================================================
+// SHADER PARAMETERS
+// =============================================================================
+
+cbuffer DUIDSParameters : register(b0)
+{
+    uint TotalCoordinatesToProcess;
+    // Potentially other parameters for access count scaling or DUIDS generation rules
+};
+
+// Input: A buffer containing 6D coordinates from which DUIDS indices will be generated
+StructuredBuffer<FHexademic6DCoordinate_GPU> InputCoordinates : register(t0);
+
+// Input/Output: A buffer to store the generated DUIDS indices
+RWStructuredBuffer<FDUIDSIndex_GPU> OutputDUIDSIndices : register(u0);
+
+// =============================================================================
+// COMPUTE KERNELS
+// =============================================================================
+
+// DUIDS Indexing Kernel
+// This kernel takes a 6D coordinate and converts it into a FDUIDSIndex.
+// It mirrors the logic of FHexademic6DCoordinate::UpdateDUIDSIndex() in C++.
+[numthreads(64, 1, 1)] // Process 64 coordinates per thread group
+void DUIDSIndexingCS(uint3 GroupID : SV_GroupID, uint3 GroupThreadID : SV_GroupThreadID, uint3 DispatchThreadID : SV_DispatchThreadID)
+{
+    uint Index = DispatchThreadID.x;
+
+    if (Index < TotalCoordinatesToProcess)
+    {
+        FHexademic6DCoordinate_GPU Coord = InputCoordinates[Index];
+        FDUIDSIndex_GPU DUIDSIndex;
+
+        // --- DUIDS Index Generation Logic (Mirroring C++ UpdateDUIDSIndex) ---
+        // Assuming X,Y,Z,W,U,V are normalized or within a defined range.
+        // The bitwise operations need to match the C++ logic exactly.
+
+        DUIDSIndex.MajorClass = (Coord.X >> 20) & 0xF;
+        DUIDSIndex.Division = (Coord.Y >> 16) & 0xFF;
+        DUIDSIndex.Section = (Coord.Z >> 8) & 0xFFF;
+        DUIDSIndex.SubSection = (Coord.W & 0xFFFFFF) | ((Coord.U & 0xFF) << 24);
+        DUIDSIndex.Cutter = (Coord.V >> 8) & 0xFFFF;
+        // Edition would typically come from an AccessCount, which isn't directly in FHexademic6DCoordinate_GPU.
+        // For GPU-only generation, Edition might be derived differently or passed as a uniform.
+        // For now, a placeholder, or assume it's set on CPU.
+        DUIDSIndex.Edition = 0; // Placeholder: FMath::Min<uint8>(255, AccessCount / 10);
+
+        OutputDUIDSIndices[Index] = DUIDSIndex;
+    }
+}
